@@ -6,7 +6,7 @@ Text-to-SQL is simpler than it looks. This repo answers plain-English questions 
 ![SQLite](https://img.shields.io/badge/SQLite-read--only-003B57?logo=sqlite&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-> **Status:** written, byte-compiled and linted with `ruff`. The test file and a live model run have **not** been run yet. Run `make test` and ask a question to confirm on your machine. All data is synthetic.
+> **Status:** `make test` passes (9 tests), `ruff` is clean, and the three example queries run against the seeded database. The safety gate refuses `DROP` and `sqlite_master`. A **live model session has not been run yet**, so answer quality is unmeasured. All data is synthetic.
 
 ## The idea
 
@@ -86,7 +86,7 @@ No agent framework, no vector store, no chat UI, no caching, no authentication, 
 
 ## Next steps
 
-- [ ] Run the tests and a live session; record real answers and failures.
+- [ ] Run a live session; record real answers and failures.
 - [ ] Add a golden question set with expected results and report accuracy.
 - [ ] Compare with a version that has no semantic file.
 - [ ] Add schema retrieval for larger databases.
