@@ -1,0 +1,57 @@
+# The agent's knowledge. Edit this file, not the code. All data is synthetic (see seed.py).
+description: A small outdoor-gear shop with online and store sales in six European countries, during 2025. SQLite dialect.
+
+tables:
+  - name: products
+    description: One row per product.
+    columns:
+      - {name: product_id, type: integer, description: Primary key}
+      - {name: name, type: text, description: Product name}
+      - {name: category, type: text, description: "Jackets, Shoes, Backpacks, Socks or Gloves"}
+      - {name: list_price, type: real, description: Price in EUR before discount}
+  - name: orders
+    description: One row per order.
+    columns:
+      - {name: order_id, type: integer, description: Primary key}
+      - {name: order_date, type: text, description: "Date as YYYY-MM-DD text"}
+      - {name: channel, type: text, description: "online or store"}
+      - {name: country, type: text, description: Country of the order}
+  - name: order_lines
+    description: One row per product on an order.
+    columns:
+      - {name: order_id, type: integer, description: Foreign key to orders}
+      - {name: product_id, type: integer, description: Foreign key to products}
+      - {name: quantity, type: integer, description: Units sold}
+      - {name: discount_pct, type: real, description: "Discount as a fraction, 0 to 0.5"}
+
+joins:
+  - order_lines.order_id = orders.order_id
+  - order_lines.product_id = products.product_id
+
+metrics:
+  - {name: revenue, expr: "SUM(order_lines.quantity * products.list_price * (1 - order_lines.discount_pct))", description: Net revenue in EUR}
+  - {name: units, expr: "SUM(order_lines.quantity)", description: Units sold}
+  - {name: orders, expr: "COUNT(DISTINCT orders.order_id)", description: Number of orders}
+  - {name: average_order_value, expr: "SUM(order_lines.quantity * products.list_price * (1 - order_lines.discount_pct)) / COUNT(DISTINCT orders.order_id)", description: Revenue per order in EUR}
+
+rules:
+  - Write one SQLite SELECT. Dates are text, so use strftime for months and years.
+  - Use the metric expressions exactly as written.
+  - Round money to 2 decimals.
+  - If the question cannot be answered with these tables, say so.
+
+examples:
+  - question: Revenue by country
+    sql: >-
+      SELECT o.country, ROUND(SUM(l.quantity * p.list_price * (1 - l.discount_pct)), 2) AS revenue
+      FROM order_lines l JOIN orders o ON o.order_id = l.order_id JOIN products p ON p.product_id = l.product_id
+      GROUP BY o.country ORDER BY revenue DESC
+  - question: Top 5 products by units sold
+    sql: >-
+      SELECT p.name, SUM(l.quantity) AS units
+      FROM order_lines l JOIN products p ON p.product_id = l.product_id
+      GROUP BY p.name ORDER BY units DESC LIMIT 5
+  - question: Orders per month
+    sql: >-
+      SELECT strftime('%Y-%m', order_date) AS month, COUNT(*) AS orders
+      FROM orders GROUP BY month ORDER BY month
